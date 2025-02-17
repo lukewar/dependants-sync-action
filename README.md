@@ -21,3 +21,11 @@ Automates the synchronization of fields in GitHub Projects between parent issues
 npm install
 GITHUB_TOKEN=your_token PROJECT_URL=https://github.com/orgs/my-org/projects/1 node src/dependants-sync.js
 ```
+
+## 🧪 Running Tests
+
+To run tests locally, use the following command:
+
+```bash
+npm test
+```
