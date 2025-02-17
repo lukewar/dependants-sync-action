@@ -1,0 +1,7 @@
+{
+  "tasks": {
+    "test": "npm install && npm test",
+    "build": "npm install",
+    "launch": "npm install && GITHUB_TOKEN={TOKEN} PROJECT_URL=https://github.com/orgs/lemongrasss/projects/227 node src/dependants-sync.js"
+  }
+}
