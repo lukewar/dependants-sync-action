@@ -3,7 +3,7 @@
 Automates the synchronization of fields in GitHub Projects between parent issues and their dependents.
 
 ## 📦 Features
-- Syncs fields like `Initiative`, `Labels`, `Assignees`, etc. (TODO: currenlty hardcoded to `Initiative`)
+- Syncs Project single-select fields, such as `Initiative`, `Team`, and `Quarter`, copying them from the top-level parent (identified by `TOP_PARENT_ISSUE_TYPE`)
 - Uses GitHub GraphQL API with `sub_issues` and `issue_types`.
 
 ## ⚡ Usage
@@ -15,7 +15,7 @@ Automates the synchronization of fields in GitHub Projects between parent issues
    - `SYNC_FIELDS` - Comma-separated list of single select fields to synchronize.
    - `TOP_PARENT_ISSUE_TYPE` - The Issue Type to use to determine the top parent issue (default: `Initiative`).
 
-3. The workflow runs every 15 minutes automatically.
+3. Run workflow every X minutes.
 
 ## 🔧 Local Testing
 
