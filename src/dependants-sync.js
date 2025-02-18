@@ -6,8 +6,8 @@
 
   The logic is as follows:
   1. Retrieve the project details (fields and id) using the PROJECT_URL environment variable.
-  2. Load all project items (with pagination).
-  3. Locate the Initiative field (by name "Initiative") and its options.
+  2. Locate the Initiative field (by name "Initiative") and its options.
+  3. Load all project items (with pagination).
   4. Iterate over every project item linked to an issue.
   5. For each issue, traverse its parent chain (using the sub_issues and issue_types APIs)
      until you find a parent whose Issue Type is "Initiative".
@@ -115,6 +115,7 @@ async function run() {
                 ... on ProjectV2FieldCommon {
                   id
                   name
+                  __typename
                 }
               }
             }
@@ -135,7 +136,20 @@ async function run() {
     const projectId = projectData.id;
     core.info(`Found project id: ${projectId}`);
 
-    // ─── STEP 2. Load all project items with pagination ───────────────────────────
+    // ─── STEP 2. Locate the Initiative field by name ─────────────────────────────
+    const syncFields = process.env.SYNC_FIELDS ? process.env.SYNC_FIELDS.split(',').map(field => field.trim()) : [];
+    const fieldsToSync = projectData.fields.nodes.filter(
+      (field) => syncFields.includes(field.name) && field.__typename === "ProjectV2SingleSelectField"
+    );
+
+    if (fieldsToSync.length === 0) {
+      throw new Error(
+        'Could not find any valid single select fields to sync in the project.'
+      );
+    }
+    core.info(`Found fields to sync: ${fieldsToSync.map(field => field.name).join(', ')}`);
+
+    // ─── STEP 3. Load all project items with pagination ───────────────────────────
     core.info("Loading all project items...");
     const allItems = await loadAllProjectItems(
       octokit,
@@ -143,23 +157,13 @@ async function run() {
       projectNumber
     );
     projectData.items = { nodes: allItems };
-    core.info(`Loaded ${allItems.length} project items.`);
-
-    // ─── STEP 3. Locate the Initiative field by name ─────────────────────────────
-    const initiativeField = projectData.fields.nodes.find(
-      (field) => field.name === "Initiative"
-    );
-    if (!initiativeField) {
-      throw new Error(
-        'Could not find a field named "Initiative" in the project.'
-      );
-    }
-    core.info(`Found Initiative field with id: ${initiativeField.id}`);
 
     if (!projectData.items || projectData.items.nodes.length === 0) {
       core.info("No project items found in this project. Exiting.");
       return;
     }
+
+    core.info(`Loaded ${allItems.length} project items.`);
 
     /**
      * Traverses an issue’s parent chain (using the sub_issues API) until it finds a parent
@@ -239,24 +243,25 @@ async function run() {
      * Retrieves the Initiative field value (option id) from a given project item.
      *
      * @param {object} projectItem - A project item node.
-     * @returns {string|null} - The Initiative field value (option id), or null if not set.
+     * @param {string} fieldName - The name of the field to retrieve.
+     * @returns {string|null} - The field value (option id), or null if not set.
      */
-    function getInitiativeFieldOptionIdFromItem(projectItem) {
+    function getFieldOptionIdFromItem(projectItem, fieldName) {
       if (!projectItem.fieldValues) return null;
-      const initiativeValue = projectItem.fieldValues.nodes.find(
-        (node) => node.field && node.field.name === "Initiative"
+      const fieldValue = projectItem.fieldValues.nodes.find(
+        (node) => node.field && node.field.name === fieldName
       );
-      return initiativeValue && initiativeValue.optionId
-        ? initiativeValue.optionId
+      return fieldValue && fieldValue.optionId
+        ? fieldValue.optionId
         : null;
     }
 
     /**
-     * Updates the Initiative field on a project item.
+     * Updates a field on a project item.
      *
      * @param {string} projectId - The project’s GraphQL id.
      * @param {string} itemId - The project item’s GraphQL id.
-     * @param {string} fieldId - The Initiative field’s GraphQL id.
+     * @param {string} fieldId - The field’s GraphQL id.
      * @param {string} optionId - The single-select option id to set.
      */
     async function updateProjectField(projectId, itemId, fieldId, optionId) {
@@ -282,7 +287,7 @@ async function run() {
       };
       const res = await octokit.graphql(mutation, variables);
       core.info(
-        `Updated project item ${itemId} with initiative option id: ${optionId}.`
+        `Updated project item ${itemId} with field option id: ${optionId}.`
       );
       return res;
     }
@@ -330,27 +335,30 @@ async function run() {
         );
         continue;
       }
-      // Retrieve the Initiative field value from the parent initiative project item.
-      const parentInitiativeValue = getInitiativeFieldOptionIdFromItem(
-        parentInitiativeProjectItem
-      );
-      if (!parentInitiativeValue) {
-        core.info(
-          `Parent initiative issue ${parentInitiativeIssueId} does not have an Initiative value set. Skipping update.`
-        );
-        continue;
-      }
-      core.info(
-        `Parent initiative issue's Initiative field option id: ${parentInitiativeValue}`
-      );
 
-      // Update the child project item with the Initiative value from the parent initiative issue.
-      await updateProjectField(
-        projectId,
-        projectItem.id,
-        initiativeField.id,
-        parentInitiativeValue
-      );
+      // Update the child project item with the field values from the parent initiative issue.
+      for (const field of fieldsToSync) {
+        const parentFieldValue = getFieldOptionIdFromItem(
+          parentInitiativeProjectItem,
+          field.name
+        );
+        if (!parentFieldValue) {
+          core.info(
+            `Parent initiative issue ${parentInitiativeIssueId} does not have a value set for field ${field.name}. Skipping update.`
+          );
+          continue;
+        }
+        core.info(
+          `Parent initiative issue's ${field.name} field option id: ${parentFieldValue}`
+        );
+
+        await updateProjectField(
+          projectId,
+          projectItem.id,
+          field.id,
+          parentFieldValue
+        );
+      }
     }
 
     core.info("Update process completed for all project items.");

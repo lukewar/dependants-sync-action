@@ -46,7 +46,8 @@ describe('dependants-sync', () => {
                   name: 'Initiative',
                   options: [
                     { id: 'option-id', name: 'Option' }
-                  ]
+                  ],
+                  __typename: 'ProjectV2SingleSelectField'
                 }
               ]
             },
