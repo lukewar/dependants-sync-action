@@ -20,7 +20,6 @@ Automates the synchronization of fields in GitHub Projects between parent issues
 ## 🔧 Local Testing
 
 ```bash
-npm install
 GITHUB_TOKEN=your_token PROJECT_URL=https://github.com/orgs/my-org/projects/1 SYNC_FIELDS=Initiative,Team TOP_PARENT_ISSUE_TYPE=Initiative node src/dependants-sync.js
 ```
 
@@ -56,10 +55,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Dependants Sync Action
-        uses: lukewar/dependants-sync-action@e7a0754016569c060a1e7931a533271543ef7d51
-        with:
+        uses: lukewar/dependants-sync-action@f754adf71dd5a05e4fa0b88db2b9f2a51e6cd68e
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PROJECT_URL: ${{ secrets.PROJECT_URL }}
           SYNC_FIELDS: ${{ secrets.SYNC_FIELDS }}
           TOP_PARENT_ISSUE_TYPE: ${{ secrets.TOP_PARENT_ISSUE_TYPE }}
 ```
+
+## 📦 Bundled Dependencies
+
+The action is bundled with its dependencies, so you don't need to run `npm install` to use it.

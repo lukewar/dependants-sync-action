@@ -17,4 +17,4 @@ inputs:
 
 runs:
   using: "node12"
-  main: "src/dependants-sync.js"
+  main: "dist/index.js"
