@@ -173,6 +173,7 @@ async function run() {
      * @returns {Promise<string|null>}
      */
     async function findParentInitiativeIssue(currentId) {
+      const topParentIssueType = process.env.TOP_PARENT_ISSUE_TYPE || "Initiative";
       const query = `
         query ($id: ID!) {
           node(id: $id) {
@@ -226,7 +227,7 @@ async function run() {
         try {
           const parentType = issue.parent.issueType;
           core.info(`Parent ${parent.id} has issue type "${parentType.name}"`);
-          if (parentType.name === "Initiative") {
+          if (parentType.name === topParentIssueType) {
             return parent.id;
           }
         } catch (e) {
