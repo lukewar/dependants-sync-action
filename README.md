@@ -12,6 +12,7 @@ Automates the synchronization of fields in GitHub Projects between parent issues
 2. Add the following secrets to your repository:
    - `GITHUB_TOKEN` - GitHub token with project access.
    - `PROJECT_URL` - The URL of your GitHub Project.
+   - `SYNC_FIELDS` - Comma-separated list of single select fields to synchronize.
 
 3. The workflow runs every 15 minutes automatically.
 
@@ -19,7 +20,7 @@ Automates the synchronization of fields in GitHub Projects between parent issues
 
 ```bash
 npm install
-GITHUB_TOKEN=your_token PROJECT_URL=https://github.com/orgs/my-org/projects/1 node src/dependants-sync.js
+GITHUB_TOKEN=your_token PROJECT_URL=https://github.com/orgs/my-org/projects/1 SYNC_FIELDS=Initiative,Labels node src/dependants-sync.js
 ```
 
 ## 🧪 Running Tests
