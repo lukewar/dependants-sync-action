@@ -2,6 +2,6 @@
   "tasks": {
     "test": "npm install && npm test",
     "build": "npm install",
-    "launch": "npm install && GITHUB_TOKEN={TOKEN} PROJECT_URL=https://github.com/orgs/lemongrasss/projects/227 SYNC_FIELDS=Initiative node src/dependants-sync.js"
+    "launch": "npm install && GITHUB_TOKEN={TOKEN} PROJECT_URL=https://github.com/orgs/lemongrasss/projects/227 SYNC_FIELDS=Initiative,Team TOP_PARENT_ISSUE_TYPE=Epic node src/dependants-sync.js"
   }
 }

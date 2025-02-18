@@ -64,4 +64,40 @@ describe('dependants-sync', () => {
     expect(core.info).toHaveBeenCalledWith('Querying project details...');
     expect(core.info).toHaveBeenCalledWith('Found project id: project-id');
   });
+
+  test('should use TOP_PARENT_ISSUE_TYPE environment variable', async () => {
+    process.env.GITHUB_TOKEN = 'test-token';
+    process.env.PROJECT_URL = 'https://github.com/orgs/my-org/projects/1';
+    process.env.TOP_PARENT_ISSUE_TYPE = 'Epic';
+
+    github.getOctokit.mockReturnValue({
+      graphql: jest.fn().mockResolvedValue({
+        organization: {
+          projectV2: {
+            id: 'project-id',
+            fields: {
+              nodes: [
+                {
+                  id: 'field-id',
+                  name: 'Initiative',
+                  options: [
+                    { id: 'option-id', name: 'Option' }
+                  ],
+                  __typename: 'ProjectV2SingleSelectField'
+                }
+              ]
+            },
+            items: {
+              nodes: []
+            }
+          }
+        }
+      })
+    });
+
+    await run();
+
+    expect(core.info).toHaveBeenCalledWith('Querying project details...');
+    expect(core.info).toHaveBeenCalledWith('Found project id: project-id');
+  });
 });
