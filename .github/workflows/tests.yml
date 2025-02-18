@@ -24,5 +24,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run Tests
-        run: npm test
+      - name: Run Unit Tests
+        run: npm test -- tests/dependants-sync.test.js
+
+      - name: Run Integration Tests
+        run: npm test -- tests/integration/dependants-sync.integration.test.js
